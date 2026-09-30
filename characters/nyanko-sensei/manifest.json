@@ -1,0 +1,12 @@
+{
+  "id": "nyanko-sensei",
+  "name": "猫咪老师",
+  "version": "0.5.2",
+  "idle": "坐着发呆",
+  "clicks": [
+    "斜眼不满",
+    "抬爪抗议"
+  ],
+  "description": "夏目友人帐 · 招财猫形态 · 非官方个人桌宠",
+  "nyanko_choreography": 5
+}

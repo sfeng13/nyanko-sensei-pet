@@ -1,0 +1,11 @@
+# Generated packages, embedded runtime and temporary build inputs
+/build/
+/dist/
+/.python-downloads/
+/runtime/
+*.py[cod]
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.tmp
+*.log

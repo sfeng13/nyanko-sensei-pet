@@ -1,0 +1,87 @@
+name: Build and publish Windows packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  windows-x64:
+    runs-on: windows-latest
+    env:
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: utf-8
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Set up locked build Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13.14'
+
+      - name: Install locked verification dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-lock.txt
+
+      - name: Ruff
+        run: |
+          ruff check app/pet app/tests
+          ruff check --select F launch.pyw nyanko_choreography.py nyanko_codex_hook.py nyanko_codex_link.py nyanko_runtime.py packaging scripts tests_packaging
+
+      - name: Pytest (main suite)
+        shell: pwsh
+        run: |
+          Set-Location app
+          python -m pytest -q `
+            --ignore=tests/test_webm_reader_lifecycle.py `
+            --ignore=tests/test_webm_clip_lifecycle.py `
+            --ignore=tests/test_webm_first_frame_lock.py `
+            --ignore=tests/test_webm_clip_loop.py `
+            --ignore=tests/test_low_priority_warm_interaction_yield.py
+
+      - name: Pytest (WebM lifecycle family, isolated)
+        shell: pwsh
+        run: |
+          Set-Location app
+          python -m pytest -q tests/test_webm_reader_lifecycle.py tests/test_webm_clip_lifecycle.py tests/test_webm_first_frame_lock.py
+
+      - name: Pytest (WebM loop family, isolated)
+        shell: pwsh
+        run: |
+          Set-Location app
+          python -m pytest -q tests/test_webm_clip_loop.py
+
+      - name: Pytest (low-priority warm family, isolated + one retry)
+        shell: pwsh
+        run: |
+          Set-Location app
+          python -m pytest -q tests/test_low_priority_warm_interaction_yield.py
+          if ($LASTEXITCODE -ne 0) { python -m pytest -q tests/test_low_priority_warm_interaction_yield.py }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Pytest (packaging and Codex hooks)
+        shell: pwsh
+        run: |
+          $env:PYTHONPATH = Join-Path $env:GITHUB_WORKSPACE 'app'
+          python -m pytest -q tests_packaging
+
+      - name: Build and verify packages
+        shell: pwsh
+        run: ./packaging/build_windows.ps1 -Version "${{ github.ref_name }}"
+
+      - name: Publish release assets
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" `
+            dist/NyankoSensei-${{ github.ref_name }}-Windows-x64-Online-Setup.zip `
+            dist/NyankoSensei-${{ github.ref_name }}-Windows-x64-Offline.zip `
+            dist/SHA256SUMS.txt `
+            dist/SIZE_REPORT.md `
+            --title "猫咪老师桌宠 ${{ github.ref_name }}" `
+            --notes-file packaging/release-notes.md

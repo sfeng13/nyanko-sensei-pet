@@ -1,0 +1,15 @@
+{
+  "version": "4.1.0",
+  "html_url": "https://github.com/MerZlin/dsh-pet-indesktop/releases",
+  "notes": "v4.1.0 累计版：自 v4.0.0 以来的功能与修复汇总——多开碰撞、灵动岛、快速对话气泡、自定义 Agent 联动、API/Provider 列表、右键菜单 LTR、三平台 CI 等；系统通知功能暂未成功实现（目前无法触发）。",
+  "assets": {
+    "dsh-pet-standalone-webm-chat-setup.exe": "https://github.com/MerZlin/dsh-pet-indesktop/releases/download/v4.1.0/dsh-pet-standalone-webm-chat-setup.exe",
+    "dsh-pet-standalone-webm-chat-portable.zip": "https://github.com/MerZlin/dsh-pet-indesktop/releases/download/v4.1.0/dsh-pet-standalone-webm-chat-portable.zip",
+    "dsh-pet-standalone-webm-setup.exe": "https://github.com/MerZlin/dsh-pet-indesktop/releases/download/v4.1.0/dsh-pet-standalone-webm-setup.exe",
+    "dsh-pet-standalone-webm-portable.zip": "https://github.com/MerZlin/dsh-pet-indesktop/releases/download/v4.1.0/dsh-pet-standalone-webm-portable.zip",
+    "dsh-pet-standalone-webm-chat-macos-arm64.zip": "https://github.com/MerZlin/dsh-pet-indesktop/releases/download/v4.1.0/dsh-pet-standalone-webm-chat-macos-arm64.zip",
+    "dsh-pet-standalone-webm-macos-arm64.zip": "https://github.com/MerZlin/dsh-pet-indesktop/releases/download/v4.1.0/dsh-pet-standalone-webm-macos-arm64.zip",
+    "dsh-pet-standalone-webm-chat-linux-x86_64.zip": "https://github.com/MerZlin/dsh-pet-indesktop/releases/download/v4.1.0/dsh-pet-standalone-webm-chat-linux-x86_64.zip",
+    "dsh-pet-standalone-webm-linux-x86_64.zip": "https://github.com/MerZlin/dsh-pet-indesktop/releases/download/v4.1.0/dsh-pet-standalone-webm-linux-x86_64.zip"
+  }
+}

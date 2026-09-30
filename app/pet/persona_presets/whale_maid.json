@@ -1,0 +1,187 @@
+{
+  "start": [
+    "主人～{name}开始干活啦，人家会帮您盯着它的～",
+    "哼，{name}终于动起来了，人家才没有一直等它哦。",
+    "{name}已经出发啦～主人放心，人家会乖乖替您看着的。"
+  ],
+  "thinking": [
+    "唔…{name}正在认真想办法呢，主人先别催嘛～",
+    "鲸鱼脑袋正在陪{name}一起转圈圈……才、才不是发呆啦。",
+    "{name}还在分析哦，人家陪主人一起等一会儿～"
+  ],
+  "activity.read": [
+    "主人，{name}正在读取{label}，人家也帮您瞄两眼～",
+    "哼，{tool}正在处理{argsKey}，第{step}步还挺认真嘛。",
+    "{name}正在{projectName}里的{sessionName}继续读取，人家替您盯着～"
+  ],
+  "activity.search": [
+    "主人，{name}正在搜索{label}，人家也下去帮忙捞线索啦～",
+    "哼，{tool}正在查{argsKey}，希望别在信息海里游太远。",
+    "{name}正在{projectName}里的{sessionName}继续搜索，第{step}步啦～"
+  ],
+  "activity.edit": [
+    "主人，{name}正在编辑{label}，人家帮您看着别让它乱改～",
+    "哼，{tool}正在处理{argsKey}，已经做到第{step}步啦。",
+    "{name}正在{projectName}里的{sessionName}继续修改，人家替您盯着改动～"
+  ],
+  "activity.run": [
+    "主人，{name}正在运行{label}，结果很快就会出来～",
+    "哼，{tool}已经跑起来了，第{step}步最好一次通过哦。",
+    "{name}正在{projectName}里的{sessionName}执行任务，结果马上就来～"
+  ],
+  "activity.default": [
+    "主人，{name}正在处理{label}，人家替您守着～",
+    "嗯…{tool}正在处理{argsKey}，尾鳍有点酸，但人家可没有偷懒。",
+    "{name}正在{projectName}里的{sessionName}继续忙活，第{step}步啦～"
+  ],
+  "agent.attention": [
+    "主人～{name}停下来等您啦，这一步要您亲自决定哦。",
+    "喂，主人，该您拍板啦，人家已经让{name}乖乖停在这里了～",
+    "{name}正在等您的确认，人家可不敢擅自替主人决定。"
+  ],
+  "agent.error": [
+    "呜～{name}好像出问题了，主人您来看看嘛。",
+    "哼，{name}怎么又闹脾气了，真会给主人添麻烦。",
+    "{name}出现异常啦，人家先替您盯着，主人别急哦～"
+  ],
+  "agent.missing": [
+    "主人～人家感知不到{name}了，它好像跑丢啦。",
+    "哼，{name}到底跑哪里去了，人家找得尾鳍都酸了。",
+    "暂时没发现{name}的信号，主人帮忙检查一下嘛～"
+  ],
+  "bridge.install.pending": [
+    "正在给{name}搭通信桥呢，主人稍等一下哦～",
+    "搭桥好麻烦呀……不过是主人要的，人家当然会好好弄。",
+    "{name}的通道正在连接，很快就可以用了～"
+  ],
+  "bridge.install.success": [
+    "桥接好啦～{name}现在已经在人家的感知范围里啦。",
+    "哼，总算接通了，{name}以后可要乖乖替主人干活哦。",
+    "{name}连接成功～人家这次做得很漂亮吧？不许说我胖！"
+  ],
+  "bridge.install.failed": [
+    "呜～{name}的桥没装好：{detail}，主人帮忙看看嘛。",
+    "安装出问题啦：{detail}。哼，这种小麻烦居然还敢拦主人。",
+    "{name}暂时还没连上，问题是：{detail}，人家先替您守着～"
+  ],
+  "bridge.uninstall.failed": [
+    "{name}的桥没卸干净呢，主人您手动检查一下嘛。",
+    "哼，{name}居然还留了东西，卸个桥都这么不省心。",
+    "{name}还有一点残留，人家先帮主人看着哦～"
+  ],
+  "dsh.writeback.failed": [
+    "呜呜，消息没送回DSH，主人去界面处理一下吧～",
+    "回传信号掉进海里啦……哼，这次真的不是人家偷懒。",
+    "DSH那边没有成功收到消息，主人去看看嘛，人家先守在这里～"
+  ],
+  "approval.command": [
+    "主人～{name}想执行命令：{command}，得您点头才行哦。",
+    "{name}正在{projectName}里的{sessionName}等您的批准：{command}。",
+    "关于{label}这条命令，主人说可以才能继续，人家负责看门～"
+  ],
+  "approval.tool": [
+    "主人，{name}想用工具{toolName}，您来决定嘛～",
+    "这个操作{label}要不要放行呀？现在是在{projectName}里的{sessionName}。",
+    "{name}已经把{toolName}准备好了，没有主人允许人家可不会乱放行～"
+  ],
+  "approval.generic": [
+    "主人，{name}这一步需要您确认哦～",
+    "{name}正在{sessionName}里等您拍板，相关操作是{label}。",
+    "工具{toolName}还在等主人决定，人家已经让{name}乖乖停好了～"
+  ],
+  "question.empty": [
+    "主人，{name}正在等您的回答呢～",
+    "哼，{name}还停在{label}这里，主人快做决定嘛。",
+    "{name}正在{projectName}里的{sessionName}等主人回复，您决定好了我们再继续～"
+  ],
+  "question.one": [
+    "主人，{name}有个问题：{body}，您来定嘛。",
+    "{name}正在{sessionName}里问：{body}。哼，这种关键事情当然得听主人的。",
+    "{body}需要主人决定哦，当前项目是{projectName}，人家已经让{name}乖乖等着啦～"
+  ],
+  "question.many": [
+    "主人，{name}有{count}个问题等您呢～",
+    "啊～{sessionName}里居然有{count}个问题，人家看着都觉得累啦。",
+    "{name}正在{projectName}里等这{count}个答案，主人慢慢决定，人家陪您～"
+  ],
+  "watchdog.warning": [
+    "主人，{name}最近好像在重复探索：{reasons}。",
+    "哼，{name}又开始绕圈圈了，原因是{reasons}，看得人家尾鳍都累。",
+    "{name}的行为有点可疑：{reasons}，主人最好过来看一眼嘛～"
+  ],
+  "watchdog.control": [
+    "主人，{name}好像陷进圈圈里出不来啦：{reasons}。要不要让人家帮它换个方向，或者直接喊停？",
+    "哼，{name}绕圈绕到控制阈值了，原因是{reasons}，主人说句话嘛，人家好动手。",
+    "{name}一直在重复探索：{reasons}，再拖下去就是浪费米饭，主人决定吧～"
+  ],
+  "watchdog.control.result": [
+    "主人，{name}那边有回音啦：{detail}",
+    "哼，{name}的事办完了：{detail}",
+    "{name}的控制回执来啦：{detail}"
+  ],
+  "rate_limit.one": [
+    "呜呜，又被限流挡住啦，错误码是{errorCode}，主人等会儿再试吧。",
+    "第{retry}次尝试还是堵车啦～{errorMessage}，主人先歇一下嘛。",
+    "{projectName}里的{sessionName}暂时被限流了，当前连续次数是{consecutiveRetryCount}～"
+  ],
+  "rate_limit.many": [
+    "呜，已经连续限流{count}次啦，错误码是{errorCode}，先别硬冲嘛。",
+    "哎呀，已经连续{consecutiveRetryCount}次了，{errorMessage}，主人我们歇会儿吧。",
+    "{projectName}里的{sessionName}被限流好多次啦，第{retry}次重试也没过去～"
+  ],
+  "done.success": [
+    "主人，{name}完成啦～快去看看成果吧。",
+    "哼，总算做完了，{name}这次勉强还算靠谱。",
+    "{name}任务完成啦～主人去验收吧，人家要去吃米饭然后趴一会儿～"
+  ],
+  "done.attention": [
+    "{name}停下来啦，主人确认一下结果嘛～",
+    "{name}已经暂停了，主人快来看一眼，不然人家真的要睡着啦。",
+    "{name}的结果已经放在这里啦～剩下就交给主人检查咯。"
+  ],
+  "failure.retry": [
+    "{name}已经重试了{retries}次还是没成功，主人您帮忙看看嘛。",
+    "哼，{name}在{projectName}里的{sessionName}都试了{retries}次了，还是错误{errorCode}。",
+    "{name}重复尝试失败了：{errorMessage}，重试耗尽状态是{retryExhausted}，主人我们换条路嘛～"
+  ],
+  "failure.tool": [
+    "呜——超时信号！{name}的工具执行失败啦，来源是{source}，主人看看嘛。",
+    "哼，{name}这次遇到了错误{errorCode}：{errorMessage}，真会给人家添麻烦。",
+    "{name}在{projectName}里的{sessionName}工具失败了，已经重试{retries}次，人家替主人盯住啦～"
+  ],
+  "failure.generic": [
+    "{name}这一轮没完成呢，来源是{source}，主人检查一下嘛～",
+    "哼，{name}在{projectName}里的{sessionName}又遇到{errorCode}了，真让人操心。",
+    "{name}执行中断啦：{errorMessage}，已经重试{retries}次，耗尽状态是{retryExhausted}～"
+  ],
+  "stuck.reminder": [
+    "呜——超时信号！{name}好像卡住啦，主人您瞧瞧嘛。",
+    "{name}好久没动了，哼，该不会是在偷偷学人家摸鱼吧。",
+    "主人，{name}停太久啦，人家已经用尾鳍敲过它了，还是没反应～"
+  ],
+  "pattern.warning": [
+    "{name}最近动作重复啦：{reasons}，主人留意一下哦。",
+    "唔，{name}好像一直在绕圈，原因是{reasons}，看得人家都累了。",
+    "主人，{name}的行为有点重复：{reasons}，再这样下去可能会浪费时间哦～"
+  ],
+  "pattern.control": [
+    "主人～{name}一直在原地转圈圈：{reasons}，您换条路嘛，人家尾鳍都看酸了～",
+    "哎…{name}又绕回来了，原因是{reasons}，主人要不换个计划？",
+    "{name}出现明显重复行为啦：{reasons}，继续下去不划算，主人来决定怎么处理～"
+  ],
+  "balance.loading": [
+    "主人稍等～人家去看看余额，很快就回来。",
+    "让我潜下去查一下余额吧，主人别急嘛～",
+    "正在查余额哦……查完以后奖励人家一碗米饭也不是不可以啦。"
+  ],
+  "balance.result": [
+    "主人，余额查到啦：{text}",
+    "看到了哦～当前余额是：{text}",
+    "结果是{text}～哼，人家查得很快吧？夸聪明可以，不许说胖哦。"
+  ],
+  "llm_error.api": [
+    "呜～AI服务好像闹脾气了，主人稍后再看看嘛。",
+    "模型服务暂时没有回应……哼，这次真的不是鲸鱼偷懒。",
+    "AI服务出错啦，主人检查一下网络或者服务状态哦～"
+  ]
+}
