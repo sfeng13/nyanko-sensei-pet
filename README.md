@@ -1,15 +1,21 @@
 # 猫咪老师桌宠
 
-Windows x64 桌面宠物，以《夏目友人帐》的猫咪老师（斑，招财猫形态）为角色，基于 [dsh-pet-indesktop](https://github.com/MerZlin/dsh-pet-indesktop) 改编。包含待机、点击、团子、左右散步与小跑、探看、小酌、烤鱿鱼、炸虾、轻跳及桌面 Codex 状态提示。
+Windows x64 桌面宠物，以《夏目友人帐》的猫咪老师（斑，招财猫形态）为角色，基于 [dsh-pet-indesktop](https://github.com/MerZlin/dsh-pet-indesktop) 改编。包含待机、点击、团子、左右散步与小跑、探看、小酌、烤鱿鱼、炸虾、轻跳、“眯眯眼”及桌面 Codex 状态提示。
+
+## 动作预览
+
+“眯眯眼”完整动作约 16 秒，其中满意眯眼停留 10 秒；播放结束后回到待机。
+
+![猫咪老师眯眯眼动作预览（16 秒）](docs/media/nyanko-sensei-satisfied-squint-preview.gif)
 
 ## 下载与安装
 
-到 [Releases](https://github.com/sfeng13/nyanko-sensei-pet/releases/latest) 下载其中一种：
+到 [Releases](https://github.com/sfeng13/nyanko-sensei-pet/releases/latest) 下载其中一种。附件名包含版本号，例如 `NyankoSensei-v0.5.3-Windows-x64-Online-Setup.zip` 和 `NyankoSensei-v0.5.3-Windows-x64-Offline.zip`：
 
-- **Online-Setup.zip**：体积较小的安装引导包。解压后双击 `Setup.cmd`；首次安装会联网下载完整运行内容，并自动校验 SHA-256。
-- **Windows-x64-Offline.zip**：完整离线包。解压后双击其中的 `Setup.cmd` 安装。
+- **Online-Setup.zip：在线引导安装。** 下载的是小型引导包（当前 v0.5.3 约 6 KiB），解压后双击 `Setup.cmd`。首次安装时需要联网，安装器会下载完整运行内容并校验 SHA-256。
+- **Windows-x64-Offline.zip：完整安装包。** 直接下载整个桌宠包（当前 v0.5.3 约 272 MiB）；下载完成后无需再联网获取运行内容。解压后双击包内 `Setup.cmd` 安装。
 
-两种方式安装相同版本。安装到 `%LOCALAPPDATA%\Programs\NyankoSensei`，只影响当前 Windows 用户，不需要管理员权限，也不要求目标电脑预装 Python。在线方式首次下载的内容仍包含完整运行环境；之后桌宠可以离线启动。发布附件中的 `SIZE_REPORT.md` 列出 Python 运行环境、安装目录和两种下载包的实测大小；`SHA256SUMS.txt` 提供两个下载包的校验值。
+两种方式安装相同版本，都会安装到 `%LOCALAPPDATA%\Programs\NyankoSensei`，只影响当前 Windows 用户，不需要管理员权限，也不要求目标电脑预装 Python。当前 v0.5.3 的完整安装目录约 589 MiB；各版本的精确体积见发布附件 `SIZE_REPORT.md`，`SHA256SUMS.txt` 提供下载包校验值。安装完成后桌宠可以离线启动。
 
 安装器默认勾选“启用 Codex 联动”。取消勾选会确保桌宠自己的 Hook 处于关闭状态。安装与修复前会备份已有 `%USERPROFILE%\.codex\hooks.json`；只合并或移除猫咪老师自己的三个事件，不覆盖其他 Hook。安装器不会替你信任 Hook：请在 Codex 中查看 `/hooks` 并审阅、信任这些定义后，它们才会运行。若更改过 `CODEX_HOME`，安装器会使用该目录下的 `hooks.json`。联动不保存对话正文、转录或账号凭据，只记录会话/轮次标识和开始、完成、中断事件。额度读取由已登录的 Codex CLI 完成；未安装或未登录时额度状态会显示不可用。
 
@@ -17,7 +23,9 @@ Windows x64 桌面宠物，以《夏目友人帐》的猫咪老师（斑，招�
 
 ## 重新构建
 
-源码仓库不保存嵌入式 Python 环境和生成的安装包。Windows 构建会下载固定版本的 Python embeddable 发行包、按锁文件安装运行依赖、编译启动器和无窗口 Hook 转发器，最后生成在线引导包、离线包、SHA-256 清单与体积报告。
+这里的“重新构建”是指开发者先获取本仓库源码（例如用 `git clone` 或下载 GitHub 的源码 ZIP），再从源码、角色素材和依赖锁文件生成安装包。构建脚本会下载固定版本的 Python embeddable 发行包、安装锁定的运行依赖、编译启动器和无窗口 Hook 转发器，最后在本地 `dist/` 生成在线引导包、完整离线包、SHA-256 清单与体积报告。源码仓库不保存嵌入式 Python 环境和生成的安装包。
+
+普通使用者不需要下载源码或重新构建，直接从 Releases 下载上面的安装包即可。运行构建脚本只会生成本地文件，不会更新 GitHub Release；Release 发布由推送 `v*` 标签触发 GitHub Actions。改 README 或动画展示图也不需要重新构建安装包。
 
 本地构建需要 Windows x64、PowerShell 7、Python 3.13.14 x64 和 Windows 自带的 .NET Framework C# 编译器：
 
