@@ -17,6 +17,7 @@ JUMP = '轻跳落地'
 GUARD = '护食抱团子'
 STRETCH = '伸懒腰'
 POUNCE = '扑空小踉跄'
+SQUINT = '眯眯眼'
 PROTEST = '抬爪抗议'
 LECTURE = '得意说教'
 DRAG = '悬空不满'
@@ -35,9 +36,9 @@ ROUTINES = {
     RIGHT: (RIGHT, '右行小步', '右向停步坐好', 6),
 }
 PUBLIC = (IDLE, CLICK, NAP, SNACK, LEFT, RIGHT, PROTEST, LECTURE,
-          ALERT, CUP, SQUID, SHRIMP, JUMP, GUARD, STRETCH, POUNCE, *RUNS)
+          ALERT, CUP, SQUID, SHRIMP, JUMP, GUARD, STRETCH, POUNCE, SQUINT, *RUNS)
 ALL_CLIPS = {IDLE, CLICK, PROTEST, LECTURE, ALERT, CUP, SQUID, SHRIMP,
-             JUMP, GUARD, STRETCH, POUNCE, *RUNS, *INTERACTIONS, *TURN_TO.values()} | {n for r in ROUTINES.values() for n in r[:3]}
+             JUMP, GUARD, STRETCH, POUNCE, SQUINT, *RUNS, *INTERACTIONS, *TURN_TO.values()} | {n for r in ROUTINES.values() for n in r[:3]}
 
 
 @dataclass

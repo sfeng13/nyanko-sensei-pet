@@ -1,13 +1,14 @@
 # Windows x64 package size report
 
-Version: v0.5.3
-Generated (UTC): 2026-09-30 16:58:21
+Version: v0.5.4
+Generated (UTC): 2026-10-02 09:59:51
 
 | Item | Exact size | Approximate size |
 |---|---:|---:|
 | Embedded Python + runtime dependencies (installed directory) | 522650214 bytes | 498 MiB |
-| Full installed payload directory | 618133163 bytes | 589 MiB |
+| Full installed payload directory | 621645993 bytes | 593 MiB |
 | Online setup download | 5949 bytes | 6 KiB |
-| Offline package download | 284947030 bytes | 272 MiB |
+| Offline package download | 288458102 bytes | 275 MiB |
 
-This local build used the existing Python 3.13.14 embedded runtime. GitHub Actions will reproduce the payload from the locked runtime dependencies.
+The online setup is only a bootstrapper; first installation downloads the full offline payload and verifies its SHA-256 against SHA256SUMS.txt.
+The offline archive includes the same payload and requires no preinstalled Python.

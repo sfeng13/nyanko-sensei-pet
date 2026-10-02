@@ -4,7 +4,7 @@ import logging
 import random
 import threading
 from PySide6.QtCore import QTimer, Qt, Signal, QPoint
-from PySide6.QtGui import QGuiApplication
+from PySide6.QtGui import QColor, QFontMetricsF, QGuiApplication, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QLabel
 from pet.window import PetWindow
 from nyanko_codex_link import EventFeed, TurnState, quota_text, read_quota
@@ -12,7 +12,7 @@ from nyanko_choreography import (
     Choreography, IDLE, CLICK, NAP, SNACK, LEFT, RIGHT, WALKS,
     ROUTINES, ALL_CLIPS, PUBLIC, PROTEST, LECTURE, DRAG, DRAG_ENTER, RELEASE,
     RUN_LEFT, RUN_RIGHT, RUNS, MOVES, RUN_DIRECTION, ALERT, CUP, SQUID, SHRIMP, JUMP,
-    GUARD, STRETCH, POUNCE,
+    GUARD, STRETCH, POUNCE, SQUINT,
 )
 
 log = logging.getLogger(__name__)
@@ -26,6 +26,34 @@ CODEX_DISPLAY_DEFAULTS = {
     'quota_persistent': True,
     'quota_duration_seconds': 15,
 }
+
+
+class _CodexStatusLabel(QLabel):
+    """Transparent status text with a thin outline at the existing font size."""
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)
+        metrics = QFontMetricsF(self.font())
+        lines = self.text().split('\n')
+        rect = self.contentsRect()
+        height = metrics.height() + metrics.lineSpacing() * (len(lines) - 1)
+        baseline = rect.top() + (rect.height() - height) / 2 + metrics.ascent()
+        path = QPainterPath()
+        for line in lines:
+            x = rect.left() + (rect.width() - metrics.horizontalAdvance(line)) / 2
+            path.addText(x, baseline, self.font(), line)
+            baseline += metrics.lineSpacing()
+
+        shadow = QPainterPath(path)
+        shadow.translate(0, 0.8)
+        painter.strokePath(shadow, QPen(QColor(0, 0, 0, 40), 2.0))
+        painter.fillPath(shadow, QColor(0, 0, 0, 50))
+        outline = QPen(QColor(16, 20, 26, 240), 1.5)
+        outline.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+        painter.strokePath(path, outline)
+        painter.fillPath(path, QColor(255, 255, 255))
 
 
 class NyankoWindow(PetWindow):
@@ -56,7 +84,7 @@ class NyankoWindow(PetWindow):
         self.idles = [IDLE]
         self.clicks = [CLICK, PROTEST]
         self.acts = [NAP, SNACK, LECTURE, ALERT, CUP, SQUID, SHRIMP, JUMP,
-                     GUARD, STRETCH, POUNCE]
+                     GUARD, STRETCH, POUNCE, SQUINT]
         self.turns = []
         self.moves = list(MOVES)
         self.drag = DRAG
@@ -84,7 +112,7 @@ class NyankoWindow(PetWindow):
         self._codex_applied_settings = self._codex_display_settings()
         log.info('Codex link initialized: %s offset=%d', self._codex_feed.path,
                  self._codex_feed.offset)
-        self._codex_chip = QLabel(self)
+        self._codex_chip = _CodexStatusLabel(self)
         self._codex_chip.setWindowFlags(
             Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint
             | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.WindowDoesNotAcceptFocus
@@ -94,10 +122,10 @@ class NyankoWindow(PetWindow):
         self._codex_chip.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self._codex_chip.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._codex_chip.setStyleSheet(
-            'QLabel { color: #f7f7f7; background-color: rgba(43, 49, 61, 225); '
-            'border: 1px solid rgba(255, 255, 255, 75); border-radius: 9px; '
-            'padding: 7px 12px; font-size: 11px; }'
+            'QLabel { color: white; background: transparent; border: none; '
+            'font-size: 11px; }'
         )
+        self._codex_chip.setContentsMargins(12, 7, 12, 7)
         self._codex_chip.hide()
         self._codex_quota_ready.connect(self._on_codex_quota_ready)
         self._codex_timer = QTimer(self)
@@ -479,7 +507,7 @@ class NyankoWindow(PetWindow):
             self.routine_history.append(clip)
             self.routine_history[:] = self.routine_history[-64:]
             if clip in (NAP, SNACK, LEFT, RIGHT, *RUNS, ALERT, CUP, SQUID, SHRIMP,
-                        JUMP, GUARD, STRETCH, POUNCE):
+                        JUMP, GUARD, STRETCH, POUNCE, SQUINT):
                 if clip in (NAP, SNACK):
                     self._previous_routine = clip
                 self._calm_cycles = 0

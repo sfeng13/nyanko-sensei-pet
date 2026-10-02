@@ -138,6 +138,14 @@ overlays, QSS, accessibility, or cross-platform desktop presentation.
 Use `.agents/skills/desktop-pet-ui-style/SKILL.md` when adding or materially
 restyling settings, menus, dialogs, overlays, or desktop widgets.
 
+This distribution does not include these two optional skill packages. When
+they are absent, use the following local review procedure and proceed within
+the user's authorized scope: preserve existing font sizes and interaction,
+render the actual Qt widget on light and dark backgrounds, check multiline
+text and transparent edges at normal desktop scale, and run focused checks
+for the affected widget. Record the result and any platform limitation.
+Generated design images do not substitute for checking the actual widget.
+
 ### Work handoff
 
 For unfinished multi-ticket work, read and refresh the feature's
