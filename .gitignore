@@ -3,6 +3,7 @@
 /dist/
 /.python-downloads/
 /runtime/
+/.venv/
 *.py[cod]
 __pycache__/
 .pytest_cache/

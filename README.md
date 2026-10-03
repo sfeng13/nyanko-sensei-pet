@@ -30,6 +30,8 @@ Windows x64 桌面宠物，以《夏目友人帐》的猫咪老师（斑，招�
 
 ## 下载与安装
 
+Ubuntu 适配正在 `ubuntu-support` 临时分支验证，共用动作资源；启动、可选 Codex 联动及实机验收步骤见 [Ubuntu 指南](docs/UBUNTU.md)。当前正式 Release 的安装包仍为 Windows 版。
+
 到 [Releases](https://github.com/sfeng13/nyanko-sensei-pet/releases/latest) 下载其中一种。附件名包含版本号，例如 `NyankoSensei-v0.5.4-Windows-x64-Online-Setup.zip` 和 `NyankoSensei-v0.5.4-Windows-x64-Offline.zip`：
 
 - **Online-Setup.zip：在线引导安装。** 下载的是小型引导包（当前 v0.5.4 约 6 KiB），解压后双击 `Setup.cmd`。首次安装时需要联网，安装器会下载完整运行内容并校验 SHA-256。

@@ -128,7 +128,7 @@ Invoke-Robocopy (Join-Path $Root 'app\pet') (Join-Path $Payload 'app\pet') @('/X
 Invoke-Robocopy (Join-Path $Root 'app\assets') (Join-Path $Payload 'app\assets') @('/XD', '__pycache__', '/XF', '*.pyc')
 Invoke-Robocopy (Join-Path $Root 'characters') (Join-Path $Payload 'characters') @('/XD', '__pycache__', '/XF', '*.pyc')
 Invoke-Robocopy (Join-Path $Root 'scripts') (Join-Path $Payload 'scripts') @('/XD', '__pycache__', '/XF', '*.pyc')
-Copy-Item -LiteralPath (Join-Path $Root 'nyanko_runtime.py'), (Join-Path $Root 'nyanko_choreography.py'), (Join-Path $Root 'nyanko_codex_hook.py'), (Join-Path $Root 'nyanko_codex_link.py'), (Join-Path $Root 'launch.pyw'), (Join-Path $Root 'requirements-runtime.lock') -Destination $Payload
+Copy-Item -LiteralPath (Join-Path $Root 'nyanko_runtime.py'), (Join-Path $Root 'nyanko_choreography.py'), (Join-Path $Root 'nyanko_codex_hook.py'), (Join-Path $Root 'nyanko_codex_link.py'), (Join-Path $Root 'launch.pyw'), (Join-Path $Root 'nyanko_paths.py'), (Join-Path $Root 'requirements-runtime.lock') -Destination $Payload
 Copy-Item -LiteralPath (Join-Path $Root 'app\LICENSE'), (Join-Path $Root 'app\THIRD_PARTY_NOTICES.md') -Destination (Join-Path $Payload 'app')
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Install.ps1'), (Join-Path $PSScriptRoot 'Uninstall.cmd'), (Join-Path $PSScriptRoot 'Manage-Codex-Link.cmd') -Destination $Payload
 Set-Content -LiteralPath (Join-Path $Payload 'version.txt') -Encoding UTF8 -Value $Version

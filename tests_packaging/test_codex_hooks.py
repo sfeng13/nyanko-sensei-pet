@@ -1,8 +1,10 @@
 import json
+import shlex
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -73,8 +75,23 @@ class CodexHookManagerTests(unittest.TestCase):
             for handler in group["hooks"]
         ]
         self.assertEqual(len(commands), 3)
-        self.assertTrue(all(command.startswith('"') for command in commands))
+        if sys.platform == "win32":
+            self.assertTrue(all(command.startswith('"') for command in commands))
+        else:
+            self.assertTrue(all(shlex.split(command)[0] == str(Path(sys.executable).resolve()) for command in commands))
         self.assertTrue(all("猫咪老师 桌宠" in command for command in commands))
+
+    def test_linux_commands_preserve_shell_special_paths(self):
+        self.install_root = self.base / "猫咪老师 space '$ dollar"
+        with patch("scripts.codex_hooks.sys.platform", "linux"):
+            manage("install", self.install_root, self.hooks)
+            for event, kind in zip(EVENTS, ("start", "stop", "interrupt")):
+                command = self.read()["hooks"][event][0]["hooks"][0]["command"]
+                self.assertEqual(shlex.split(command), [
+                    str(Path(sys.executable).resolve()),
+                    str((self.install_root / "nyanko_codex_hook.py").resolve()), kind,
+                ])
+            self.assertFalse(manage("repair", self.install_root, self.hooks)["changed"])
 
     def test_invalid_json_is_never_overwritten(self):
         original = b'{not json\n'

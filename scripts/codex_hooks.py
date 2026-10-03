@@ -9,6 +9,7 @@ import argparse
 import copy
 import json
 import os
+import shlex
 import sys
 import tempfile
 from datetime import datetime, timezone
@@ -33,6 +34,8 @@ def hooks_path() -> Path:
 
 
 def _command(host: Path, hook_script: Path, event: str) -> str:
+    if sys.platform != "win32":
+        return shlex.join([str(host.resolve()), str(hook_script.resolve()), event])
     # Windows Codex executes this as a command line. Quote each path so Unicode,
     # spaces, and punctuation in the per-user install folder remain intact.
     return f'"{host.resolve()}" "{hook_script.resolve()}" {event}'
@@ -151,7 +154,7 @@ def manage(action: str, root: Path, path: Path | None = None) -> dict[str, Any]:
 
     changed = _without_ours(hooks)
     if action in {"install", "repair"}:
-        host = root / "HookHost.exe"
+        host = root / "HookHost.exe" if sys.platform == "win32" else Path(sys.executable)
         script = root / HOOK_SCRIPT
         for event, kind in zip(EVENTS, ("start", "stop", "interrupt")):
             groups = hooks.setdefault(event, [])

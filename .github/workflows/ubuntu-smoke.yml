@@ -1,0 +1,39 @@
+name: Ubuntu support smoke checks
+on:
+  push:
+    branches: [ubuntu-support]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ubuntu-2204:
+    runs-on: ubuntu-22.04
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.10'
+      - name: Install runtime and check tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libopengl0 libxcb-cursor0 libxkbcommon-x11-0
+          python -m pip install -r requirements-ubuntu.txt pytest ruff
+      - name: Check shell, imports and hooks
+        run: |
+          bash -n start.sh install-ubuntu.sh
+          ruff check --select F launch.pyw nyanko_paths.py nyanko_runtime.py nyanko_choreography.py nyanko_codex_link.py nyanko_codex_hook.py scripts tests_packaging
+          python -m pytest -q tests_packaging
+          PYTHONPATH=app:. python -c "import nyanko_runtime; from pet.config import Config; import PySide6"
+      - name: Start application offscreen (not desktop acceptance)
+        run: |
+          export NYANKO_PYTHON="$(command -v python)"
+          set +e
+          timeout 15s bash start.sh
+          status=$?
+          set -e
+          if [ "$status" -ne 124 ]; then
+            cat "$HOME/.local/state/nyanko-sensei/logs/launcher.log" || true
+            exit 1
+          fi
