@@ -45,6 +45,7 @@ from .speech_bubble_text import (
     breath_bubble_size_for_scale,
     bubble_max_lines,
     bubble_rect_for_anchor,
+    bubble_tail_direction,
     elide_bubble_text,
     list_self_talk_images,
     normalize_bubble_text,
@@ -207,6 +208,7 @@ class PetSpeechBubble(QFrame):
         self._interactive = False
         self._capture_compat = False
         self._capture_host: QWidget | None = None
+        self._headroom_claim = None
         self.setObjectName("pet-speech-bubble")
         flags = (
             Qt.WindowType.Tool
@@ -696,8 +698,23 @@ class PetSpeechBubble(QFrame):
     def hideEvent(self, event) -> None:  # noqa: N802 (Qt 命名)
         """气泡被隐藏（超时 / dismiss / 父窗口隐藏）时通知上层。"""
         super().hideEvent(event)
+        self._release_capture_headroom()
         self._teardown_interactive()
         self.hidden_signal.emit()
+
+    def _release_capture_headroom(self) -> None:
+        claim, self._headroom_claim = self._headroom_claim, None
+        if claim is None:
+            return
+        host, original, requested = claim
+        try:
+            quick_chat = getattr(host, "_quick_chat_capture_widget", None)
+            if quick_chat is not None and quick_chat.isVisible():
+                return
+            if getattr(host, "_capture_headroom", 0) == requested and not getattr(host, "_closing", False):
+                host.set_capture_headroom(original)
+        except RuntimeError:
+            pass  # The parent is already being destroyed.
 
     def _reset_paging(self) -> None:
         """停止自动翻页并隐藏页码指示（单页内容/图片/换内容时调用）。"""
@@ -791,6 +808,19 @@ class PetSpeechBubble(QFrame):
         # clipped image below its decorations. Their sizeHint therefore only
         # contains layout margins; position the real fixed-size window instead.
         size = self.size()
+        if host is not None:
+            desired_top = anchor_rect.top() - size.height() - 12
+            setter = getattr(host, "set_capture_headroom", None)
+            if callable(setter) and screen.availableGeometry().top() <= desired_top < avail.top():
+                current = getattr(host, "_capture_headroom", 0)
+                original = self._headroom_claim[1] if self._headroom_claim is not None else current
+                requested = current + avail.top() - desired_top
+                if setter(requested):
+                    self._headroom_claim = (host, original, requested)
+                    avail = host.geometry()
+                    visible_rect = getattr(host, "visible_content_rect", None)
+                    if callable(visible_rect):
+                        anchor_rect = visible_rect()
         rect = bubble_rect_for_anchor(anchor_rect, size, avail, self._preset["placement"])
         if self._preset.get("shape") == "breath_bubble" and rect.bottom() < anchor_rect.top():
             # The reference canvas deliberately leaves transparent space below
@@ -818,7 +848,8 @@ class PetSpeechBubble(QFrame):
             self.update()
             return
         anchor_center = self.mapFromGlobal(self._anchor_rect.center())
-        if global_rect.bottom() < self._anchor_rect.top():
+        direction = bubble_tail_direction(self._anchor_rect, global_rect)
+        if direction == "down":
             self._surface_rect = local.adjusted(4, 3, -4, -10)
             tip_x = min(max(anchor_center.x(), 20), local.width() - 20)
             self._tail_base = (
@@ -826,7 +857,7 @@ class PetSpeechBubble(QFrame):
                 QPointF(tip_x + 6, self._surface_rect.bottom() - 2),
             )
             self._tail_tip = QPointF(tip_x, local.bottom() - 4)
-        elif global_rect.left() > self._anchor_rect.right():
+        elif direction == "left":
             self._surface_rect = local.adjusted(10, 3, -4, -4)
             tip_y = min(max(anchor_center.y(), 18), local.height() - 18)
             self._tail_base = (
@@ -834,7 +865,7 @@ class PetSpeechBubble(QFrame):
                 QPointF(self._surface_rect.left() + 2, tip_y + 6),
             )
             self._tail_tip = QPointF(4, tip_y)
-        elif global_rect.right() < self._anchor_rect.left():
+        elif direction == "right":
             self._surface_rect = local.adjusted(4, 3, -10, -4)
             tip_y = min(max(anchor_center.y(), 18), local.height() - 18)
             self._tail_base = (

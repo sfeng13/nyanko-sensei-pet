@@ -2,7 +2,7 @@
 """
 开机自启动管理（跨平台）。
 
-- Windows：HKCU Run 注册表键（无需管理员权限）；
+- Windows：角色启动器使用当前用户 Startup 快捷方式，普通版本使用 HKCU Run；
 - macOS：LaunchAgents plist（~/Library/LaunchAgents/）；
 - Linux：XDG autostart .desktop（~/.config/autostart/）。
 
@@ -12,14 +12,17 @@
 命令按运行形态自适应：
 - PyInstaller 打包（sys.frozen）：Windows 自启动先用 `start /D` 切到 exe 所在目录再启动 exe；
   macOS/Linux 指向 .app 内二进制自身 / onedir 内二进制自身；
-- 源码运行：Windows 用 `pythonw -m pet`，macOS/Linux 用 `python -m pet`（带工作目录）。
+- 源码运行：有角色启动器时保留它，否则使用 `python -m pet`（带工作目录）。
 """
 
 from __future__ import annotations
 
 import os
+import json
+import logging
 import re
 import shlex
+import subprocess
 import sys
 from pathlib import Path
 
@@ -55,7 +58,19 @@ if _IS_WIN:
 
 
 def _project_root() -> Path:
+    launcher = _source_launcher()
+    if launcher is not None:
+        return launcher.parent
     return Path(__file__).resolve().parent.parent
+
+
+def _source_launcher() -> Path | None:
+    raw = os.environ.get("DSH_PET_SOURCE_LAUNCHER")
+    if raw:
+        path = Path(raw)
+        if path.is_absolute() and path.is_file():
+            return path
+    return None
 
 
 def _plist_path() -> Path:
@@ -78,7 +93,9 @@ def _linux_desktop_content() -> str:
     else:
         root_quoted = shlex.quote(str(_project_root()))
         exe_quoted = shlex.quote(str(sys.executable))
-        inner_cmd = f"cd {root_quoted} && exec {exe_quoted} -m pet --slot 0"
+        launcher = _source_launcher()
+        entry = shlex.quote(str(launcher)) if launcher else "-m pet"
+        inner_cmd = f"cd {root_quoted} && exec {exe_quoted} {entry} --slot 0"
         command = f"/bin/sh -c {shlex.quote(inner_cmd)}"
     return (
         "[Desktop Entry]\n"
@@ -145,6 +162,17 @@ def cleanup_stale_entries() -> int:
     """
     if not _IS_WIN:
         return 0
+    # Repair a moved/deleted role installation when the user next opens its
+    # launcher. Do not revive a shortcut explicitly disabled by Windows.
+    try:
+        shortcut = _startup_shortcut_path()
+        if _source_launcher() is not None and shortcut.is_file() and not _shortcut_disabled(shortcut):
+            previous = _read_startup_shortcut(shortcut)
+            if not Path(previous["target"]).is_file() or not Path(previous["directory"]).is_dir():
+                if enable():
+                    logging.info("已修复移动安装目录后失效的角色自启快捷方式")
+    except (OSError, subprocess.SubprocessError):
+        logging.warning("无法核对角色自启快捷方式", exc_info=True)
     removed = 0
     try:
         for name, command in _iter_known_win_values():
@@ -164,8 +192,14 @@ def cleanup_stale_entries() -> int:
 
 
 def is_enabled() -> bool:
-    """当前变体是否已注册开机自启（只查当前变体自己的注册表值）。"""
+    """当前变体是否已注册开机自启；尊重 Windows 禁用状态。"""
     if _IS_WIN:
+        try:
+            shortcut = _startup_shortcut_path()
+            if shortcut.exists():
+                return not _shortcut_disabled(shortcut)
+        except OSError:
+            pass
         try:
             with winreg.OpenKey(winreg.HKEY_CURRENT_USER, RUN_KEY) as key:
                 command, _ = winreg.QueryValueEx(key, VALUE_NAME)
@@ -187,7 +221,7 @@ def is_enabled() -> bool:
                         # 只读场景（如权限异常）不强求升级，仍视为已启用
                         pass
                 return True
-        except FileNotFoundError:
+        except OSError:
             # 只认当前变体自己的值；其他变体的自启状态互不影响。
             return False
     if _IS_MAC:
@@ -207,20 +241,136 @@ def _win_command() -> str:
         # 又不会让 cmd 窗口一直等待桌宠退出。开机自启固定指定 --slot 0。
         exe = Path(sys.executable).resolve()
         return f'cmd /c start "" /D "{exe.parent}" "{exe}" --slot 0'
-    return f'cmd /c start "" /D "{_project_root()}" "{_pythonw_path()}" -m pet --slot 0'
+    launcher = _source_launcher()
+    executable = os.environ.get("DSH_PET_SOURCE_EXECUTABLE")
+    if launcher and executable:
+        path = Path(executable)
+        if path.is_absolute() and path.is_file() and path.parent == launcher.parent:
+            return f'"{path}" --slot 0'
+    entry = f'"{launcher}"' if launcher else "-m pet"
+    return f'cmd /c start "" /D "{_project_root()}" "{_pythonw_path()}" {entry} --slot 0'
 
 
 def _mac_program_args() -> list[str]:
     if getattr(sys, "frozen", False):
         # .app 内二进制路径，直接作为 LaunchAgent 程序运行
         return [str(sys.executable), "--slot", "0"]
-    return [sys.executable, "-m", "pet", "--slot", "0"]
+    launcher = _source_launcher()
+    entry = [str(launcher)] if launcher else ["-m", "pet"]
+    return [sys.executable, *entry, "--slot", "0"]
+
+
+def _startup_shortcut_path() -> Path:
+    """Use the real Windows Startup folder, not the launcher's overridden APPDATA."""
+    import ctypes
+
+    buffer = ctypes.create_unicode_buffer(32768)
+    result = ctypes.windll.shell32.SHGetFolderPathW(None, 7, None, 0, buffer)
+    if result != 0:
+        raise OSError("Cannot locate current-user Startup folder")
+    return Path(buffer.value) / f"{VALUE_NAME}.lnk"
+
+
+def _shortcut_disabled(shortcut: Path) -> bool:
+    try:
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder",
+        ) as key:
+            value, _ = winreg.QueryValueEx(key, shortcut.name)
+        return isinstance(value, bytes) and bool(value) and value[0] in (3, 7)
+    except OSError:
+        return False
+
+
+def _startup_shell(script: str, environment: dict[str, str]) -> subprocess.CompletedProcess:
+    powershell = Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32/WindowsPowerShell/v1.0/powershell.exe"
+    return subprocess.run(
+        [str(powershell), "-NoProfile", "-NonInteractive", "-Command", script],
+        env=environment, check=True, capture_output=True, timeout=15,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+    )
+
+
+def _read_startup_shortcut(shortcut: Path) -> dict[str, str]:
+    environment = os.environ.copy()
+    environment["DSH_PET_STARTUP_READ"] = str(shortcut)
+    result = _startup_shell(
+        "$ErrorActionPreference='Stop'; [Console]::OutputEncoding=[Text.Encoding]::UTF8; "
+        "$s=(New-Object -ComObject WScript.Shell).CreateShortcut($env:DSH_PET_STARTUP_READ); "
+        "@{target=$s.TargetPath;directory=$s.WorkingDirectory}|ConvertTo-Json -Compress",
+        environment,
+    )
+    try:
+        data = json.loads(result.stdout.decode("utf-8-sig"))
+        if not isinstance(data, dict) or any(not isinstance(data.get(k), str) or not data[k] for k in ("target", "directory")):
+            raise ValueError("Invalid shortcut metadata")
+        return data
+    except (ValueError, UnicodeError) as error:
+        raise OSError("Cannot read startup shortcut") from error
+
+
+def _remove_owned_run() -> None:
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, RUN_KEY, 0, winreg.KEY_SET_VALUE) as key:
+            winreg.DeleteValue(key, VALUE_NAME)
+    except FileNotFoundError:
+        # New user profiles need not have an HKCU Run key at all.
+        pass
+
+
+def _write_startup_shortcut() -> None:
+    launcher = _source_launcher()
+    if launcher is None:
+        raise OSError("Missing role launcher")
+    executable = Path(os.environ.get("DSH_PET_SOURCE_EXECUTABLE", ""))
+    if executable.is_absolute() and executable.is_file() and executable.parent == launcher.parent:
+        target, arguments = str(executable), "--slot 0"
+    else:
+        target, arguments = _pythonw_path(), f'"{launcher}" --slot 0'
+    if not Path(target).is_file():
+        raise OSError("Startup executable is missing")
+    shortcut = _startup_shortcut_path()
+    shortcut.parent.mkdir(parents=True, exist_ok=True)
+    environment = os.environ.copy()
+    environment["DSH_PET_STARTUP_LINK"] = json.dumps({
+        "path": str(shortcut), "target": target, "arguments": arguments,
+        "directory": str(launcher.parent),
+    }, ensure_ascii=False)
+    # Pass paths as data, never interpolate them into executable shell code.
+    _startup_shell(
+        "$ErrorActionPreference='Stop'; $d=$env:DSH_PET_STARTUP_LINK|ConvertFrom-Json; "
+        "$w=New-Object -ComObject WScript.Shell; $s=$w.CreateShortcut($d.path); "
+        "$s.TargetPath=$d.target; $s.Arguments=$d.arguments; "
+        "$s.WorkingDirectory=$d.directory; $s.WindowStyle=7; $s.Save(); "
+        "$v=$w.CreateShortcut($d.path); "
+        "if($v.TargetPath -ne $d.target -or $v.Arguments -ne $d.arguments -or "
+        "$v.WorkingDirectory -ne $d.directory){throw 'Startup shortcut readback failed'}",
+        environment,
+    )
+    if not shortcut.is_file():
+        raise OSError("Startup shortcut was not saved")
+    # Explicitly enabling in our menu restores our own OS-disabled entry only.
+    try:
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder",
+            0, winreg.KEY_SET_VALUE,
+        ) as key:
+            winreg.DeleteValue(key, shortcut.name)
+    except FileNotFoundError:
+        pass
 
 
 def enable() -> bool:
     """开启自启；返回是否写入成功（Windows 回读注册表验证，macOS 验证 plist 存在，Linux 验证 .desktop 存在）。"""
     if _IS_WIN:
         try:
+            if _source_launcher() is not None:
+                _write_startup_shortcut()
+                # Remove the previous route only after its replacement is saved.
+                _remove_owned_run()
+                return is_enabled()
             # 只写当前变体自己的值，不影响其他 Chat/无 Chat 变体的自启状态。
             with winreg.OpenKey(winreg.HKEY_CURRENT_USER, RUN_KEY, 0, winreg.KEY_SET_VALUE) as key:
                 winreg.SetValueEx(key, VALUE_NAME, 0, winreg.REG_SZ, _win_command())
@@ -228,7 +378,8 @@ def enable() -> bool:
             with winreg.OpenKey(winreg.HKEY_CURRENT_USER, RUN_KEY) as key:
                 value, _ = winreg.QueryValueEx(key, VALUE_NAME)
             return bool(value)
-        except OSError:
+        except (OSError, subprocess.SubprocessError):
+            logging.warning("Windows 开机自启设置失败", exc_info=True)
             return False
     elif _IS_MAC:
         import plistlib
@@ -262,11 +413,8 @@ def disable() -> bool:
     """关闭自启；返回是否已清除。"""
     if _IS_WIN:
         try:
-            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, RUN_KEY, 0, winreg.KEY_SET_VALUE) as key:
-                try:
-                    winreg.DeleteValue(key, VALUE_NAME)
-                except FileNotFoundError:
-                    pass
+            _startup_shortcut_path().unlink(missing_ok=True)
+            _remove_owned_run()
             return True
         except OSError:
             return False

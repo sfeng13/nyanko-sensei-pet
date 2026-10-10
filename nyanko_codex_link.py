@@ -6,6 +6,7 @@ import os
 import queue
 import shutil
 import subprocess
+import sys
 import threading
 from pathlib import Path
 
@@ -86,9 +87,27 @@ def _receive_id(out: queue.Queue, wanted: int, timeout: float) -> dict:
             return message
 
 
+def find_codex() -> str | None:
+    """Discover Codex again on each query, including after desktop app updates."""
+    command = shutil.which("codex")
+    if command:
+        return command
+    if sys.platform == "win32":
+        base = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
+        try:
+            candidates = list((base / "OpenAI" / "Codex" / "bin").glob("*/codex.exe"))
+            candidates = [path for path in candidates if path.is_file()]
+            candidates.sort(key=lambda path: path.stat().st_mtime, reverse=True)
+            if candidates:
+                return str(candidates[0])
+        except OSError:
+            pass
+    return None
+
+
 def read_quota(timeout: float = 8.0) -> dict:
     """Read subscription limits; never starts a model turn or copies auth tokens."""
-    codex = shutil.which("codex")
+    codex = find_codex()
     if not codex:
         raise RuntimeError("找不到 Codex CLI")
     flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0

@@ -1,10 +1,17 @@
 """Nyanko-sensei launcher with per-user writable state."""
-from pathlib import Path
 import os
 import sys
+from datetime import datetime, timezone
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 os.chdir(ROOT)
+os.environ["DSH_PET_SOURCE_LAUNCHER"] = str(ROOT / "launch.pyw")
+for launcher_name in ("NyankoSensei.exe", "启动猫咪老师.exe"):
+    launcher_exe = ROOT / launcher_name
+    if sys.platform == "win32" and launcher_exe.is_file():
+        os.environ["DSH_PET_SOURCE_EXECUTABLE"] = str(launcher_exe)
+        break
 sys.path.insert(0, str(ROOT))
 from nyanko_paths import user_data_dir
 
@@ -31,13 +38,14 @@ if not initial_config.path.exists():
     initial_config.set("character", "nyanko-sensei")
     initial_config.save()
 
-sys.stdout = open(LOG_DIR / "launcher.log", "a", encoding="utf-8", buffering=1)
+sys.stdout = open(LOG_DIR / "launcher.log", "a", encoding="utf-8", buffering=1)  # noqa: SIM115 -- process-lifetime log
 sys.stderr = sys.stdout
+print(f"{datetime.now(timezone.utc).isoformat(timespec='seconds')} launcher starting: {ROOT}", flush=True)
 
 def run():
     sys.path.insert(0, str(ROOT))
-    from pet import app as pet_app
     from nyanko_runtime import NyankoWindow
+    from pet import app as pet_app
     pet_app.PetWindow = NyankoWindow
     return pet_app.main([str(ROOT / "launch.pyw"), "--slot", "0"], enable_chat=False)
 

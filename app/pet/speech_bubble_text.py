@@ -137,6 +137,27 @@ def paginate_bubble_text(
     ]
 
 
+def bubble_tail_direction(anchor_rect: QRect, bubble_rect: QRect) -> str:
+    """Face the anchor even when a constrained capture/screen area causes overlap."""
+    if bubble_rect.bottom() < anchor_rect.top():
+        return "down"
+    if bubble_rect.top() > anchor_rect.bottom():
+        return "up"
+    if bubble_rect.left() > anchor_rect.right():
+        return "left"
+    if bubble_rect.right() < anchor_rect.left():
+        return "right"
+    dx = (bubble_rect.center().x() - anchor_rect.center().x()) / max(
+        1, (bubble_rect.width() + anchor_rect.width()) / 2
+    )
+    dy = (bubble_rect.center().y() - anchor_rect.center().y()) / max(
+        1, (bubble_rect.height() + anchor_rect.height()) / 2
+    )
+    if abs(dx) > abs(dy):
+        return "left" if dx > 0 else "right"
+    return "down" if dy <= 0 else "up"
+
+
 def bubble_rect_for_anchor(
     anchor_rect: QRect,
     bubble_size: QSize,

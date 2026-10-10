@@ -7,6 +7,7 @@ from PySide6.QtCore import QTimer, Qt, Signal, QPoint
 from PySide6.QtGui import QColor, QFontMetricsF, QGuiApplication, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QLabel
 from pet.window import PetWindow
+from pet.click_sound import resolve_click_sound_pair
 from nyanko_codex_link import EventFeed, TurnState, quota_text, read_quota
 from nyanko_choreography import (
     Choreography, IDLE, CLICK, NAP, SNACK, LEFT, RIGHT, WALKS,
@@ -212,6 +213,9 @@ class NyankoWindow(PetWindow):
         if str(menu.property('menuStyle') or '') == 'modern':
             from pet.context_menus.menu_styles.modern import install_modern_check_indicators
             install_modern_check_indicators(submenu)
+
+        from nyanko_games_ui import add_games_menu
+        add_games_menu(menu, self)
 
     def _open_codex_settings(self):
         opener = getattr(self, 'on_open_modern_settings', None)
@@ -585,10 +589,24 @@ class NyankoWindow(PetWindow):
             return super()._on_click()
         if self._just_dragged:
             return
+        if self._effects_consume_click():
+            return
+        if callable(self.on_restore_fun_windows):
+            self.on_restore_fun_windows()
         self.mark_activity()
+        if self._effects_route_click_golden_spin():
+            return
         action = CLICK if self._click_counter % 2 == 0 else PROTEST
         self._click_counter += 1
-        self._switch(action)
+        if not self._switch(action):
+            return
+        if resolve_click_sound_pair(self.cfg.get("click_sound_pack"), data_dir=self.cfg.dir) is None:
+            self._schedule_click_sound()
+        if self.click_show_balance and callable(self.on_show_balance):
+            self.on_show_balance(self)
+        elif self.click_show_self_talk and self._self_talk_enabled:
+            if self._show_click_self_talk(action):
+                self._schedule_self_talk(after_display=True)
 
     def mouseReleaseEvent(self, event):
         was_dragging = self._dragging
@@ -630,6 +648,8 @@ class NyankoWindow(PetWindow):
             return
         if name != self.choreography.current:
             return
+        if name in self.clicks:
+            self._effects_on_click_anim_finished()
         if name in (DRAG_ENTER, DRAG):
             if self._dragging or self._physics_mode is not None:
                 self._release_progress = 1.0
