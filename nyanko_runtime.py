@@ -77,6 +77,10 @@ class NyankoWindow(PetWindow):
             log.error('Nyanko routine assets missing: %s', sorted(missing))
             return
         self.choreography = Choreography()
+        self.agent_animation_pools = {
+            'main': (ALERT, LECTURE),
+            'break': (STRETCH, SQUINT),
+        }
         self._manual_walk = None
         self._manual_walk_timer = QTimer(self)
         self._manual_walk_timer.setSingleShot(True)
@@ -89,12 +93,19 @@ class NyankoWindow(PetWindow):
         self.turns = []
         self.moves = list(MOVES)
         self.drag = DRAG
+        # Consumers such as AgentLinkManager read cats, while menus read the
+        # window lists. Internal routine phases are not independent actions.
+        self.cats.update(idle=self.idle, idles=self.idles, clicks=self.clicks,
+                         turns=self.turns, turn=None, moves=self.moves,
+                         acts=self.acts, drag=self.drag)
         self._landing_timer = QTimer(self)
         self._landing_timer.setInterval(30)
         self._landing_timer.timeout.connect(self._finish_throw_feedback)
         self._previous_routine = random.choice([NAP, SNACK])
         self._idle_target = random.randint(4, 7)
         self._switch(IDLE)
+        self._music_sing_timer.stop()
+        self._music_sing_active = False
         self._setup_codex_link()
 
     def _setup_codex_link(self):
@@ -501,6 +512,8 @@ class NyankoWindow(PetWindow):
             if not self._can_roam() or self._walk_room(direction) < 216 * self.scale:
                 return self._commit(Choreography(), IDLE)
         if super()._switch(clip):
+            if clip != IDLE:
+                self._cancel_animation_gap()
             self.choreography = candidate
             if candidate.routine in WALKS or clip in RUNS:
                 self.facing = 'left' if candidate.routine == LEFT or clip == RUN_LEFT else 'right'
@@ -584,6 +597,25 @@ class NyankoWindow(PetWindow):
         finally:
             self._nyanko_resuming = False
 
+    def _is_one_shot_playing(self):
+        if self.choreography is None:
+            return super()._is_one_shot_playing()
+        # A routine includes its entry, loops and exit, including phases that
+        # are intentionally absent from the public animation menu.
+        return self.choreography.current != IDLE
+
+    def request_link_anim(self, name):
+        if self.choreography is not None and name not in PUBLIC:
+            log.warning('Unsupported Nyanko Agent animation: %s', name)
+            return
+        super().request_link_anim(name)
+
+    def _start_music_sing_polling(self):
+        if self.choreography is None:
+            return super()._start_music_sing_polling()
+        self._music_sing_active = False
+        self._music_sing_timer.stop()
+
     def _on_click(self):
         if self.choreography is None:
             return super()._on_click()
@@ -660,9 +692,34 @@ class NyankoWindow(PetWindow):
         if self._move_plan:
             self._advance_walk(1)
         if name == IDLE and self.choreography.pending is None:
+            if self._pending_link_anim:
+                self._play_pending_link_anim()
+                return
+            if self._animation_gap_active:
+                self._play_animation_gap_step()
+                return
             return self._pick_next()
+        completed_action = self.choreography.routine or name
         candidate = copy(self.choreography)
-        self._commit(candidate, candidate.finished(name))
+        clip = candidate.finished(name)
+        if clip == IDLE:
+            # Only the complete routine boundary is safe for Agent work or
+            # an automatic pause. Never cut a sleep/walk/eating loop in half.
+            self._commit(candidate, None)
+            if self._pending_link_anim:
+                self._play_pending_link_anim()
+                return
+            if completed_action == self._link_anim_current:
+                self._link_anim_current = None
+                nxt = self._link_next_provider() if callable(self._link_next_provider) else None
+                if nxt:
+                    self.request_link_anim(nxt)
+                    return
+            if (self.animation_gap_seconds > 0
+                    and completed_action not in (*self.clicks, DRAG_ENTER, DRAG, RELEASE)):
+                self._start_animation_gap()
+                return
+        self._commit(candidate, clip)
 
     def _pick_next(self):
         if self.choreography is None:

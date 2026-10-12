@@ -37,6 +37,17 @@ _UPDATE_JSON_URLS = (
 _USER_AGENT = 'dsh-pet-standalone-updater'
 
 
+def configure_source(repository: str, version: str, *, mirrors=(), backup_url: str = '') -> None:
+    """Select a derivative's release source before starting the application."""
+    global REPO, APP_VERSION, RELEASE_API, REPO_URL, QUARK_PAN_URL, _UPDATE_JSON_URLS
+    REPO = repository
+    APP_VERSION = str(version).strip().lstrip('vV')
+    RELEASE_API = f'https://api.github.com/repos/{REPO}/releases/latest'
+    REPO_URL = f'https://github.com/{REPO}'
+    QUARK_PAN_URL = backup_url
+    _UPDATE_JSON_URLS = tuple(mirrors)
+
+
 def _fetch_json(url: str, timeout: float):
     """GET JSON；任何失败返回 None。"""
     try:
@@ -102,9 +113,9 @@ def version_parts(tag: str) -> list[int]:
     return out
 
 
-def is_newer(latest_tag: str, current: str = APP_VERSION) -> bool:
+def is_newer(latest_tag: str, current: str | None = None) -> bool:
     """latest_tag 是否比 current 新（'v3.0.1' > '3.0.0'）。"""
-    return version_parts(latest_tag) > version_parts(current)
+    return version_parts(latest_tag) > version_parts(APP_VERSION if current is None else current)
 
 
 def pick_asset(release: dict) -> dict | None:

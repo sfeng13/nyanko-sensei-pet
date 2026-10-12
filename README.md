@@ -65,6 +65,8 @@ Ubuntu 适配正在 `ubuntu-support` 临时分支验证，共用动作资源；�
 
 ## 目录
 
+各项功能是否已迁移、设置是否生效及仍待确认的功能，见 [功能迁移核对](docs/MIGRATION-FUNCTION-AUDIT.md)。
+
 - `app/`：桌宠上游程序源码及本仓库保留的修改。
 - `characters/nyanko-sensei/`：角色清单和运行动画素材。
 - `nyanko_runtime.py`、`nyanko_choreography.py`：猫咪老师动作编排与桌面联动。

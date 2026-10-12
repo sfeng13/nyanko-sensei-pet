@@ -195,6 +195,9 @@ def build_pet_controls(host) -> None:
     host.click_self_talk_check.setChecked(bool(host.config.get("click_show_self_talk", False)))
     host.music_sing_check = ToggleSwitch(host)
     host.music_sing_check.setChecked(bool(host.config.get("music_sing_enabled", False)))
+    if host.config.get('character') == 'nyanko-sensei':
+        host.music_sing_check.setEnabled(False)
+        host.music_sing_check.setToolTip('猫咪老师当前没有唱歌动画素材')
     host.golden_spin_click_check = ToggleSwitch(host)
     host.golden_spin_click_check.setChecked(bool(host.config.get("golden_spin_on_click", False)))
     host.golden_spin_direct_check = ToggleSwitch(host)

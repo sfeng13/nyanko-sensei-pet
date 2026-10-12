@@ -27,6 +27,9 @@ def new_pet_command() -> list[str]:
     """返回与当前运行形态一致的桌宠启动命令。"""
     if getattr(sys, "frozen", False):
         return [sys.executable]
+    launcher = os.environ.get("DSH_PET_SOURCE_LAUNCHER")
+    if launcher and Path(launcher).is_file():
+        return [sys.executable, str(Path(launcher).resolve())]
     return [sys.executable, "-m", "pet"]
 
 

@@ -2042,8 +2042,9 @@ class AgentLinkManager(QObject):
     def _next_link_anim_rotation(self) -> str | None:
         """下一个联动动作：主动作严格交替；每第 3 次插播摸鱼（独立节奏）。"""
         acts = list(getattr(self.win, "cats", {}).get("acts", []) or [])
-        main = [a for a in self._LINK_MAIN if a in acts]
-        brk = [a for a in self._LINK_BREAK if a in acts]
+        pools = getattr(self.win, 'agent_animation_pools', {})
+        main = [a for a in pools.get('main', self._LINK_MAIN) if a in acts]
+        brk = [a for a in pools.get('break', self._LINK_BREAK) if a in acts]
         # 不同角色包的动作名不统一：精确名缺失时按语义关键词回退。
         if not main:
             main = [a for a in acts if any(k in a for k in self._LINK_MAIN_KEYWORDS)]

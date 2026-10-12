@@ -420,7 +420,9 @@ class ModernSettingsDialog(QDialog):
             SettingRow("idle_low_fps", "省电模式", "一段时间不操作桌宠时，动画按半帧率呈现（24fps 素材 → 12fps 效果）并停止后台动画预热，任何交互立即恢复全帧率。", self.idle_low_fps_check),
             SettingRow("no_move", "不移动", "暂停桌宠在桌面上的自动移动。", self.no_move_check),
             SettingRow("mouse_through", "鼠标穿透", "开启后桌宠不接收鼠标事件，点击穿透到下层窗口。", self.mouse_through_check),
-            SettingRow("music_sing", "音乐自动唱歌", "检测到后台播放音乐时，自动播放唱歌动画。", self.music_sing_check),
+            SettingRow("music_sing", "音乐自动唱歌",
+                       "猫咪老师当前没有唱歌动画素材，暂不可用。" if self.config.get('character') == 'nyanko-sensei'
+                       else "检测到后台播放音乐时，自动播放唱歌动画。", self.music_sing_check),
         ], behavior_content))
         behavior_layout.addWidget(SettingsSection("拖拽与弹射", [
             SettingRow("drag_physics", "拖动物理", "启用拖拽惯性、重力和边缘反弹。", self.drag_physics_check),
@@ -445,7 +447,7 @@ class ModernSettingsDialog(QDialog):
                        "默认关闭：新生成的小肥鱼不打开自己的灵动岛。开启后小肥鱼继承主肥鱼的灵动岛设置。",
                        self.spawn_inherit_dynamic_island_check),
             SettingRow("clear_spawned_pets", "一键退出子肥鱼",
-                       "关闭所有已生成的小肥鱼，并删除它们的配置、会话与待办数据。",
+                       "关闭所有已生成的小肥鱼，保留它们的设置、会话与待办数据。",
                        self.clear_spawned_pets_btn),
         ], behavior_content))
         behavior_layout.addWidget(SettingsSection("多开碰撞", [
@@ -592,6 +594,9 @@ class ModernSettingsDialog(QDialog):
         menu_available_actions = set(MENU_ACTIONS.ids)
         if sys.platform != "win32":
             menu_available_actions.discard("proactive_screen")
+        from . import updater
+        if sys.platform != 'win32' or not updater.QUARK_PAN_URL:
+            menu_available_actions.discard('quark_download')
         if not self.include_ai:
             menu_available_actions.difference_update({"chat", "look_screen", "balance", "proactive_screen"})
         self.menu_available_actions = frozenset(menu_available_actions)

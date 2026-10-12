@@ -42,6 +42,10 @@ class ClickPet(QWidget, WindowFeatureGateMixin):
         self._hidden_paused = False
         self._move_plan = None
         self._closing = False
+        self._pending_link_anim = None
+        self._link_anim_current = None
+        self._link_next_provider = None
+        self.animation_gap_seconds = 0
 
     @property
     def click_sound_enabled(self):

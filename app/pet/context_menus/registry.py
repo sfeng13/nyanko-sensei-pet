@@ -11,12 +11,11 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMenu, QWidgetAction
 
 from ..config import DEFAULT_MENU_EASTER_EGG
+from .. import updater
 from .fun_entry import add_ojingjing_entry, fun_entry_available
 from .icons import custom_file_menu_icon, vector_menu_icon
 from .quick_launch import add_quick_launch_menu, configured_quick_apps
 from .shared import (
-    QUARK_PAN_URL,
-    REPO_URL,
     add_action,
     add_agent_link_menu,
     add_autostart,
@@ -131,7 +130,7 @@ def _build_github(menu, _pet):
         menu,
         "GitHub 项目页",
         "web",
-        lambda: QDesktopServices.openUrl(QUrl(REPO_URL)),
+        lambda: QDesktopServices.openUrl(QUrl(updater.REPO_URL)),
         close_on_trigger=True,
     )
 
@@ -141,7 +140,7 @@ def _build_quark(menu, _pet):
         menu,
         "夸克网盘下载",
         "download",
-        lambda: QDesktopServices.openUrl(QUrl(QUARK_PAN_URL)),
+        lambda: QDesktopServices.openUrl(QUrl(updater.QUARK_PAN_URL)),
         close_on_trigger=True,
     )
 
@@ -194,7 +193,8 @@ class MenuActionRegistry:
             "deepseek_web": MenuActionSpec(lambda menu, pet: add_deepseek_web(menu)),
             "check_update": MenuActionSpec(_build_check_update, _callback_available("on_check_update")),
             "github_project": MenuActionSpec(_build_github),
-            "quark_download": MenuActionSpec(_build_quark, lambda _pet: sys.platform == "win32"),
+            "quark_download": MenuActionSpec(
+                _build_quark, lambda _pet: sys.platform == "win32" and bool(updater.QUARK_PAN_URL)),
             "agent_link": MenuActionSpec(add_agent_link_menu),
             "proactive_screen": MenuActionSpec(
                 add_proactive_menu,

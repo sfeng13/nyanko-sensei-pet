@@ -44,10 +44,19 @@ print(f"{datetime.now(timezone.utc).isoformat(timespec='seconds')} launcher star
 
 def run():
     sys.path.insert(0, str(ROOT))
+    from pet import updater
+    version_file = ROOT / 'version.txt'
+    version = version_file.read_text(encoding='utf-8-sig').strip() if version_file.is_file() else '0.5.4'
+    updater.configure_source('sfeng13/nyanko-sensei-pet', version)
     from nyanko_runtime import NyankoWindow
     from pet import app as pet_app
     pet_app.PetWindow = NyankoWindow
-    return pet_app.main([str(ROOT / "launch.pyw"), "--slot", "0"], enable_chat=False)
+    args = list(sys.argv[1:])
+    # Explicit slots (autostart) are preserved. Spawned children compete for
+    # a free slot instead of being forced into the main pet's occupied slot.
+    if '--slot' not in args and os.environ.get('DSH_PET_SPAWN_OFFSET_INDEX', '0') == '0':
+        args += ['--slot', '0']
+    return pet_app.main([str(ROOT / "launch.pyw"), *args], enable_chat=False)
 
 if __name__ == "__main__":
     try:

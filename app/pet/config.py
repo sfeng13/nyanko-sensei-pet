@@ -400,7 +400,7 @@ def _default_base():
         return Path(os.environ.get("APPDATA") or Path.home())
     if sys.platform == "darwin":
         return Path.home() / "Library" / "Application Support"
-    return Path.home() / ".config"
+    return Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
 
 
 def _app_dir_name() -> str:
