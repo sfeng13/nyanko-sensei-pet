@@ -285,11 +285,15 @@ def _shortcut_disabled(shortcut: Path) -> bool:
 
 def _startup_shell(script: str, environment: dict[str, str]) -> subprocess.CompletedProcess:
     powershell = Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32/WindowsPowerShell/v1.0/powershell.exe"
-    return subprocess.run(
-        [str(powershell), "-NoProfile", "-NonInteractive", "-Command", script],
-        env=environment, check=True, capture_output=True, timeout=15,
-        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-    )
+    try:
+        return subprocess.run(
+            [str(powershell), "-NoProfile", "-NonInteractive", "-Command", script],
+            env=environment, check=True, capture_output=True, timeout=15,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+        )
+    except subprocess.CalledProcessError as error:
+        logging.error("Windows startup Shell error: %s", error.stderr.decode(errors="replace"))
+        raise
 
 
 def _read_startup_shortcut(shortcut: Path) -> dict[str, str]:
