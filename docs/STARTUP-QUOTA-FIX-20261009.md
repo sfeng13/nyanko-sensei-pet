@@ -97,3 +97,7 @@ WScript.Shell 的 TargetPath 赋值（ArgumentException），并非后续校验�
 
 专项 Windows 检查独立运行并保留中文、空格、特殊字符及搬移目录断言，不跳过原测试。
 v0.5.5 标签保留失败构建记录，不重写标签；修复后的正式版本顺延至 v0.5.6。
+
+原生接口验证：本机主回归 1636 passed / 8 skipped，打包测试 31 passed；
+GitHub Windows 专项检查 [39063032595](https://github.com/sfeng13/nyanko-sensei-pet/actions/runs/39063032595)
+通过，原中文及特殊字符路径、快捷方式回读和搬移断言完整保留。

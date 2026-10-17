@@ -32,12 +32,12 @@ Windows x64 桌面宠物，以《夏目友人帐》的猫咪老师（斑，招�
 
 Windows 与 Ubuntu 共用 `main` 分支的源码和动作资源，原 `ubuntu-support` 临时分支已合并回主分支；Ubuntu 启动、可选 Codex 联动及实机验收步骤见 [Ubuntu 指南](docs/UBUNTU.md)。当前正式 Release 的安装包仍为 Windows 版。
 
-到 [Releases](https://github.com/sfeng13/nyanko-sensei-pet/releases/latest) 下载其中一种。附件名包含版本号，例如 `NyankoSensei-v0.5.4-Windows-x64-Online-Setup.zip` 和 `NyankoSensei-v0.5.4-Windows-x64-Offline.zip`：
+到 [Releases](https://github.com/sfeng13/nyanko-sensei-pet/releases/latest) 下载其中一种。附件名包含版本号，例如 `NyankoSensei-v0.5.6-Windows-x64-Online-Setup.zip` 和 `NyankoSensei-v0.5.6-Windows-x64-Offline.zip`：
 
-- **Online-Setup.zip：在线引导安装。** 下载的是小型引导包（当前 v0.5.4 约 6 KiB），解压后双击 `Setup.cmd`。首次安装时需要联网，安装器会下载完整运行内容并校验 SHA-256。
-- **Windows-x64-Offline.zip：完整安装包。** 直接下载整个桌宠包（当前 v0.5.4 约 275 MiB）；下载完成后无需再联网获取运行内容。解压后双击包内 `Setup.cmd` 安装。
+- **Online-Setup.zip：在线引导安装。** 下载的是小型引导包，解压后双击 `Setup.cmd`。首次安装时需要联网，安装器会下载完整运行内容并校验 SHA-256。
+- **Windows-x64-Offline.zip：完整安装包。** 直接下载整个桌宠包；下载完成后无需再联网获取运行内容。解压后双击包内 `Setup.cmd` 安装。
 
-两种方式安装相同版本，都会安装到 `%LOCALAPPDATA%\Programs\NyankoSensei`，只影响当前 Windows 用户，不需要管理员权限，也不要求目标电脑预装 Python。当前 v0.5.4 的完整安装目录约 590 MiB；各版本的精确体积见发布附件 `SIZE_REPORT.md`，`SHA256SUMS.txt` 提供下载包校验值。安装完成后桌宠可以离线启动。
+两种方式安装相同版本，都会安装到 `%LOCALAPPDATA%\Programs\NyankoSensei`，只影响当前 Windows 用户，不需要管理员权限，也不要求目标电脑预装 Python。下载包与完整安装目录的精确体积见对应版本的发布附件 `SIZE_REPORT.md`，`SHA256SUMS.txt` 提供下载包校验值。安装完成后桌宠可以离线启动。
 
 安装器默认勾选“启用 Codex 联动”。取消勾选会确保桌宠自己的 Hook 处于关闭状态。安装与修复前会备份已有 `%USERPROFILE%\.codex\hooks.json`；只合并或移除猫咪老师自己的三个事件，不覆盖其他 Hook。安装器不会替你信任 Hook：请在 Codex 中查看 `/hooks` 并审阅、信任这些定义后，它们才会运行。若更改过 `CODEX_HOME`，安装器会使用该目录下的 `hooks.json`。联动不保存对话正文、转录或账号凭据，只记录会话/轮次标识和开始、完成、中断事件。额度读取由已登录的 Codex CLI 完成；未安装或未登录时额度状态会显示不可用。
 
@@ -52,13 +52,13 @@ Windows 与 Ubuntu 共用 `main` 分支的源码和动作资源，原 `ubuntu-su
 本地构建需要 Windows x64、PowerShell 7、Python 3.13.14 x64 和 Windows 自带的 .NET Framework C# 编译器：
 
 ```powershell
-./packaging/build_windows.ps1 -Version v0.5.4
+./packaging/build_windows.ps1 -Version v0.5.6
 ```
 
 如果本机已有兼容的 Python 3.13.14 嵌入环境，可仅用于本地复现：
 
 ```powershell
-./packaging/build_windows.ps1 -Version v0.5.4 -PythonRuntimeSource C:\path\to\python313
+./packaging/build_windows.ps1 -Version v0.5.6 -PythonRuntimeSource C:\path\to\python313
 ```
 
 正式发行由推送 `v*` 标签触发 `.github/workflows/publish-windows.yml`，在 Windows x64 构建机上重新生成并上传发布附件。任何本地运行环境都不会被提交到 Git。
