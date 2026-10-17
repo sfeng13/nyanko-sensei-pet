@@ -40,7 +40,7 @@ menu = QMenu()
 QDesktopServices.openUrl = lambda url: captured.update(project_url=url.toString())
 registry._build_github(menu, None).trigger()
 captured.update(repo=updater.REPO, version=updater.APP_VERSION,
-                newer=updater.is_newer('0.5.5'), mirrors=updater._UPDATE_JSON_URLS)
+                newer=updater.is_newer('0.5.6'), mirrors=updater._UPDATE_JSON_URLS)
 sys.__stdout__.write(json.dumps(captured))
 '''
     result = subprocess.run([sys.executable, '-c', script, json.dumps(args)],
@@ -64,7 +64,7 @@ def test_role_launcher_checks_its_own_releases(tmp_path):
     result = launcher_result(tmp_path, [])
     assert result['repo'] == 'sfeng13/nyanko-sensei-pet'
     assert result['project_url'] == 'https://github.com/sfeng13/nyanko-sensei-pet'
-    assert result['version'] == '0.5.4'
+    assert result['version'] == '0.5.5'
     assert result['newer'] is True
     # There is no Nyanko update.json; never fall back to upstream metadata.
     assert result['mirrors'] == []
