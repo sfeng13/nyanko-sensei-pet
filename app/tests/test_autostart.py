@@ -192,7 +192,9 @@ def test_windows_actual_shortcut_moves_between_unicode_install_paths(monkeypatch
         launcher = root / "launch.pyw"
         launcher.write_text("", encoding="utf-8")
         executable = root / "NyankoSensei.exe"
-        executable.write_bytes(b"MZ")
+        # Shell versions may reject a two-byte MZ placeholder as an invalid
+        # executable. Test real links with a real PE file, without running it.
+        executable.write_bytes(Path(sys.executable).read_bytes())
         executables.append(executable)
         monkeypatch.setenv("DSH_PET_SOURCE_LAUNCHER", str(launcher))
         monkeypatch.setenv("DSH_PET_SOURCE_EXECUTABLE", str(executable))
