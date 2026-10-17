@@ -18,11 +18,9 @@
 from __future__ import annotations
 
 import os
-import json
 import logging
 import re
 import shlex
-import subprocess
 import sys
 from pathlib import Path
 
@@ -171,7 +169,7 @@ def cleanup_stale_entries() -> int:
             if not Path(previous["target"]).is_file() or not Path(previous["directory"]).is_dir():
                 if enable():
                     logging.info("已修复移动安装目录后失效的角色自启快捷方式")
-    except (OSError, subprocess.SubprocessError):
+    except OSError:
         logging.warning("无法核对角色自启快捷方式", exc_info=True)
     removed = 0
     try:
@@ -283,35 +281,9 @@ def _shortcut_disabled(shortcut: Path) -> bool:
         return False
 
 
-def _startup_shell(script: str, environment: dict[str, str]) -> subprocess.CompletedProcess:
-    powershell = Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32/WindowsPowerShell/v1.0/powershell.exe"
-    try:
-        return subprocess.run(
-            [str(powershell), "-NoProfile", "-NonInteractive", "-Command", script],
-            env=environment, check=True, capture_output=True, timeout=15,
-            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-        )
-    except subprocess.CalledProcessError as error:
-        logging.error("Windows startup Shell error: %s", error.stderr.decode(errors="replace"))
-        raise
-
-
 def _read_startup_shortcut(shortcut: Path) -> dict[str, str]:
-    environment = os.environ.copy()
-    environment["DSH_PET_STARTUP_READ"] = str(shortcut)
-    result = _startup_shell(
-        "$ErrorActionPreference='Stop'; [Console]::OutputEncoding=[Text.Encoding]::UTF8; "
-        "$s=(New-Object -ComObject WScript.Shell).CreateShortcut($env:DSH_PET_STARTUP_READ); "
-        "@{target=$s.TargetPath;directory=$s.WorkingDirectory}|ConvertTo-Json -Compress",
-        environment,
-    )
-    try:
-        data = json.loads(result.stdout.decode("utf-8-sig"))
-        if not isinstance(data, dict) or any(not isinstance(data.get(k), str) or not data[k] for k in ("target", "directory")):
-            raise ValueError("Invalid shortcut metadata")
-        return data
-    except (ValueError, UnicodeError) as error:
-        raise OSError("Cannot read startup shortcut") from error
+    from .windows_startup_link import read_shortcut
+    return read_shortcut(shortcut)
 
 
 def _remove_owned_run() -> None:
@@ -336,24 +308,13 @@ def _write_startup_shortcut() -> None:
         raise OSError("Startup executable is missing")
     shortcut = _startup_shortcut_path()
     shortcut.parent.mkdir(parents=True, exist_ok=True)
-    environment = os.environ.copy()
-    environment["DSH_PET_STARTUP_LINK"] = json.dumps({
-        "path": str(shortcut), "target": target, "arguments": arguments,
-        "directory": str(launcher.parent),
-    }, ensure_ascii=False)
-    # Pass paths as data, never interpolate them into executable shell code.
-    _startup_shell(
-        "$ErrorActionPreference='Stop'; $d=$env:DSH_PET_STARTUP_LINK|ConvertFrom-Json; "
-        "$w=New-Object -ComObject WScript.Shell; $s=$w.CreateShortcut($d.path); "
-        "$s.TargetPath=$d.target; $s.Arguments=$d.arguments; "
-        "$s.WorkingDirectory=$d.directory; $s.WindowStyle=7; $s.Save(); "
-        "$v=$w.CreateShortcut($d.path); "
-        "if($v.TargetPath -ne $d.target -or $v.Arguments -ne $d.arguments -or "
-        "$v.WorkingDirectory -ne $d.directory){throw 'Startup shortcut readback failed'}",
-        environment,
-    )
-    if not shortcut.is_file():
-        raise OSError("Startup shortcut was not saved")
+    from .windows_startup_link import write_shortcut
+    write_shortcut(shortcut, target, arguments, str(launcher.parent))
+    saved = _read_startup_shortcut(shortcut)
+    if (not os.path.samefile(saved['target'], target)
+            or saved['arguments'] != arguments
+            or not os.path.samefile(saved['directory'], launcher.parent)):
+        raise OSError('Startup shortcut readback failed')
     # Explicitly enabling in our menu restores our own OS-disabled entry only.
     try:
         with winreg.OpenKey(
@@ -382,7 +343,7 @@ def enable() -> bool:
             with winreg.OpenKey(winreg.HKEY_CURRENT_USER, RUN_KEY) as key:
                 value, _ = winreg.QueryValueEx(key, VALUE_NAME)
             return bool(value)
-        except (OSError, subprocess.SubprocessError):
+        except OSError:
             logging.warning("Windows 开机自启设置失败", exc_info=True)
             return False
     elif _IS_MAC:

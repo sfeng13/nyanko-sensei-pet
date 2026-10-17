@@ -81,3 +81,19 @@ Windows Shell 检查含中文、空格、美元符号、方括号和单引号的
 检查。已将修复同步到本地安装目录，下次桌宠进程启动加载；没有改动已成功的
 自启快捷方式，没有重启当前桌宠，也没有推送或发布。
 备份：`C:\zwt\资源\桌宠\nyanko-sensei\backups\startup-portable-20261011-021315`。
+
+## 2026-10-18：发布机上的快捷方式兼容检查
+
+v0.5.5 构建在 GitHub Windows 主回归中失败，未生成 Release。具体错误来自
+WScript.Shell 的 TargetPath 赋值（ArgumentException），并非后续校验或运行素材。
+使用真实 PE 文件替代测试占位文件后仍然失败，因此没有把原因归咎于占位文件。
+本机同样路径检查通过，差异尚不能归结为某个确切系统设置。
+
+快捷方式读写改为标准库调用原生 IShellLinkW / IPersistFile Unicode 接口，
+不再依赖 PowerShell 与 WScript 自动化。保存后仍核对目标、参数和工作目录；
+目标与目录按文件身份比较以兼容路径别名。COM 引用及初始化计数在退出时释放，
+不改变当前线程已有的 COM apartment。旧快捷方式保留兼容读取。
+参考：[Microsoft Shell Links](https://learn.microsoft.com/windows/win32/shell/links)。
+
+专项 Windows 检查独立运行并保留中文、空格、特殊字符及搬移目录断言，不跳过原测试。
+v0.5.5 标签保留失败构建记录，不重写标签；修复后的正式版本顺延至 v0.5.6。

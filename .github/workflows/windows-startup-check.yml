@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'app/pet/autostart.py'
+      - 'app/pet/windows_startup_link.py'
       - 'app/tests/test_autostart.py'
       - '.github/workflows/windows-startup-check.yml'
   workflow_dispatch:

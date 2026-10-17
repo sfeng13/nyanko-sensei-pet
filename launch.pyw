@@ -46,7 +46,7 @@ def run():
     sys.path.insert(0, str(ROOT))
     from pet import updater
     version_file = ROOT / 'version.txt'
-    version = version_file.read_text(encoding='utf-8-sig').strip() if version_file.is_file() else '0.5.5'
+    version = version_file.read_text(encoding='utf-8-sig').strip() if version_file.is_file() else '0.5.6'
     updater.configure_source('sfeng13/nyanko-sensei-pet', version)
     from nyanko_runtime import NyankoWindow
     from pet import app as pet_app
