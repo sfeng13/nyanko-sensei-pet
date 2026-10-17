@@ -19,6 +19,10 @@ def launcher_result(tmp_path, args, *, child=False):
     env['DSH_PET_SPAWN_OFFSET_INDEX'] = '1' if child else '0'
     script = '''
 import json, runpy, sys
+from pathlib import Path
+# Embedded Windows Python ignores PYTHONPATH; use the same explicit source
+# paths as the shipped launcher rather than relying on environment injection.
+sys.path[:0] = [str(Path.cwd() / 'app'), str(Path.cwd())]
 from pet import app, updater
 captured = {}
 def main(argv, enable_chat=True):

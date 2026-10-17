@@ -1,7 +1,7 @@
-# Ubuntu 临时分支验证
+# Ubuntu 启动与验证
 
-`ubuntu-support` 基于 Windows v0.5.4 后的主分支；共用最新素材、编排与源码。
-Windows Release 不变。本分支尚未完成 Ubuntu 实机验收，不是新的正式发布。
+Windows 与 Ubuntu 共用 `main` 分支的素材、编排与源码；原 `ubuntu-support` 已合并回主分支。
+Windows Release 不变。最新源码仍需 Ubuntu 实机验收，不是新的正式发布。
 
 ## 下载和启动
 
@@ -10,7 +10,7 @@ Windows Release 不变。本分支尚未完成 Ubuntu 实机验收，不是新�
 ```bash
 mkdir -p ~/PET
 cd ~/PET
-git clone --branch ubuntu-support https://github.com/sfeng13/nyanko-sensei-pet.git nyanko-sensei-pet
+git clone --branch main https://github.com/sfeng13/nyanko-sensei-pet.git nyanko-sensei-pet
 cd nyanko-sensei-pet
 NYANKO_PYTHON="$HOME/PET/dsh-pet-indesktop/.venv/bin/python" bash start.sh
 ```
@@ -64,7 +64,9 @@ PYTHON_BIN="$PWD/.venv/bin/python"
 也可在登录界面选择 Ubuntu on Xorg 对照验证，不要仅凭进程启动判定成功。
 
 后续更新先确认没有未提交改动，再执行 `git pull --ff-only`。
-有 Ubuntu 本地修复就提交到 `ubuntu-support`，验证通过后再合并 main。
+已有 `ubuntu-support` 下载目录可先执行 `git fetch origin`、`git switch main`，再执行
+`git pull --ff-only`，不用重装虚拟环境。有 Ubuntu 本地修复时，从 `main` 创建功能分支，
+验证通过后再合并回 `main`。
 旧版个人修改应逐项比较合入，勿把旧版整个源码覆盖到新分支。
 
 本地 Windows 检查不能替代 Ubuntu 桌面、音频、窗口管理器和 Hook 实机验收。

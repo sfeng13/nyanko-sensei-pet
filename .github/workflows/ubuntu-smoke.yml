@@ -1,7 +1,7 @@
 name: Ubuntu support smoke checks
 on:
   push:
-    branches: [ubuntu-support]
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
